@@ -1,0 +1,31 @@
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.4;
+import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
+contract NFTsale is ERC721 {
+
+    constructor() ERC721("MyToken", "MTK") {}
+    
+    function safeMint(address to, uint256 tokenId) public  {
+        _safeMint(to, tokenId);}
+        
+    struct Details{uint id;uint price;address owner;}
+    
+    address payable public  owner=payable(msg.sender);
+    
+    mapping(uint=> Details) public ItemOnSale;
+    
+    function addItem(uint _id,uint _price)public{
+        require(msg.sender==ownerOf(_id),"Not the owner of NFT");
+        Details memory details=Details(_id,_price*10**18,msg.sender);
+        ItemOnSale[_id]=details;
+        }
+        
+    function buy(uint TokenID)public payable{
+         Details memory details=ItemOnSale[TokenID];
+         require(msg.value == details.price, "Not adequate ethers");
+         bool sent=payable(details.owner).send((9*msg.value)/10);
+         require(sent,"transfer failed");
+         payable(owner).transfer(msg.value/10);
+         transferFrom(details.owner,msg.sender,TokenID);
+         }
+        }
